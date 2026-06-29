@@ -3,39 +3,72 @@ using TMPro;
 
 public class IntermittentSensorNode : MonoBehaviour
 {
-    public enum NodeState { DeepSleep, Sensing, Computing, Transmitting, Idle }
-    
     [Header("Identification")]
     public int nodeID; // 노드 고유 번호
     public TMP_Text idTextMesh; // 머리 위 ID 표시용
-    
-    [Header("Hardware Specs (ESP32-C3 & Sensor)")]
-    public float maxBatteryJoules = 594f; // 50 mAh @ 3.3V
-    public float currentBatteryJoules;
-    public float wakeUpThreshold = 118.8f; // 20% Recovery
-    public float sleepThreshold = 5.94f;   // 1% Critical
 
-    [Header("Power Consumption (mW)")]
-    public float powerDeepSleep = 0.05f; 
+    [Header("Battery Specs")]
+    public float maxBatteryJoules = 594f;
+    [Range(0f, 1f)] public float initialBatteryRatio = 0.5f;
+    public float wakeUpThreshold = 118.8f;
+    public float sleepThreshold = 5.94f;
+
+    [Header("State Power (mW)")]
+    public float powerDeepSleep = 0.05f;
     public float powerIdle = 434.85f;
     public float powerSensing = 505.95f;
     public float powerComputing = 490.0f;
     public float powerTransmitting = 800.0f;
 
-    [Header("Real-World Solar Physics")]
-    public float solarConstant = 1361f;         
-    public float clearSkyTransmittance = 0.7f;  
-    public float diffuseRatio = 0.15f;          
-    public float panelConversionFactor = 0.0000003f; // 최대 300uW 스케일링용
+    [Header("State Duration (s)")]
+    public float durationIdle = 1.0f;
+    public float durationSensing = 3.0f;
+    public float durationComputing = 12.0f;
+    public float durationTransmitting = 0.1f;
 
+    [Header("Solar Harvesting")]
+    public float solarConstant = 1361f;
+    public float clearSkyTransmittance = 0.7f;
+    public float diffuseRatio = 0.15f;
+    public float panelConversionFactor = 0.0000003f;
+    public bool useWeatherSystem = true;
+    
     [Header("Live Status & Logging")]
-    public NodeState currentState = NodeState.DeepSleep;
+    public SensorNodeState currentState = SensorNodeState.DeepSleep;
+    public float currentBatteryJoules;
     public float currentHarvesting_mW = 0f;
     public float currentConsuming_mW = 0f;
     
     // 로깅을 위한 누적 데이터 (1시간 윈도우용)
     public float windowHarvestedJoules = 0f;
     public float windowConsumedJoules = 0f;
+
+    [Header("Paper Evaluation Metrics")]
+    public float windowDeepSleepSeconds = 0f;
+    public float windowIdleSeconds = 0f;
+    public float windowSensingSeconds = 0f;
+    public float windowComputingSeconds = 0f;
+    public float windowTransmittingSeconds = 0f;
+    public int windowWakeUpCount = 0;
+    public int windowDeepSleepEntryCount = 0;
+    public int windowDepletionCount = 0;
+    public int windowSensingCompletionCount = 0;
+    public int windowInferenceCompletionCount = 0;
+    public int windowTransmissionCompletionCount = 0;
+
+    public float totalHarvestedJoules = 0f;
+    public float totalConsumedJoules = 0f;
+    public float totalDeepSleepSeconds = 0f;
+    public float totalIdleSeconds = 0f;
+    public float totalSensingSeconds = 0f;
+    public float totalComputingSeconds = 0f;
+    public float totalTransmittingSeconds = 0f;
+    public int totalWakeUpCount = 0;
+    public int totalDeepSleepEntryCount = 0;
+    public int totalDepletionCount = 0;
+    public int totalSensingCompletionCount = 0;
+    public int totalInferenceCompletionCount = 0;
+    public int totalTransmissionCompletionCount = 0;
 
     private Light celestialLight;
     private float stateTimer = 0f;
@@ -48,7 +81,7 @@ public class IntermittentSensorNode : MonoBehaviour
 
     void Start()
     {
-        currentBatteryJoules = maxBatteryJoules * 0.5f; // 시작 시 10%
+        currentBatteryJoules = maxBatteryJoules * initialBatteryRatio;
         celestialLight = RenderSettings.sun;
 
         // [기능 3] 머리 위 ID 텍스트 설정
@@ -60,12 +93,13 @@ public class IntermittentSensorNode : MonoBehaviour
 
     void Update()
     {
+        float gameDeltaTime = GetGameTimeDelta();
         if (celestialLight == null) celestialLight = RenderSettings.sun;
-        UpdateHarvesting();
-        UpdateStateMachine();
+        UpdateHarvesting(gameDeltaTime);
+        UpdateStateMachine(gameDeltaTime);
     }
 
-    private void UpdateHarvesting()
+    private void UpdateHarvesting(float gameDeltaTime)
     {
         Vector3 sunDir = -celestialLight.transform.forward;
         float cosZenith = Mathf.Max(0.02f, sunDir.y); 
@@ -86,7 +120,7 @@ public class IntermittentSensorNode : MonoBehaviour
         // UniStorm 셰이더 값 범위: ~0.36(맑음) ~ ~0.72(폭풍) → 1.0(맑음) ~ 0.0(완전 흐림)으로 역매핑
         // 날씨 전환 애니메이션 중에도 구름이 점점 끼는 과정이 연속적으로 에너지에 반영됨
         float weatherAttenuation;
-        if (UniStorm.UniStormSystem.Instance != null)
+        if (useWeatherSystem && UniStorm.UniStormSystem.Instance != null)
         {
             float cloudCoverage = UniStorm.UniStormSystem.Instance.m_UniStormClouds != null
                 ? UniStorm.UniStormSystem.Instance.m_UniStormClouds.skyMaterial.GetFloat("_uCloudsCoverage")
@@ -101,11 +135,12 @@ public class IntermittentSensorNode : MonoBehaviour
         }
 
         float totalIrradiance_W_m2 = ((DNI * directOcclusion * cosZenith) + (DHI * skyViewFactor)) * weatherAttenuation;
-        currentHarvesting_mW = (totalIrradiance_W_m2 * panelConversionFactor) * 1000f;
+    currentHarvesting_mW = (totalIrradiance_W_m2 * panelConversionFactor) * 1000f;
 
-        float harvestedJoules = currentHarvesting_mW / 1000f * GetGameTimeDelta();
+        float harvestedJoules = currentHarvesting_mW / 1000f * gameDeltaTime;
         AddEnergy(harvestedJoules);
         windowHarvestedJoules += harvestedJoules; // 누적
+        totalHarvestedJoules += harvestedJoules;
     }
 
     private void CalculatePhysicalOcclusion(Vector3 sunDir, out float directOcclusion, out float skyViewFactor)
@@ -119,45 +154,186 @@ public class IntermittentSensorNode : MonoBehaviour
         skyViewFactor = (float)openSkyRays / diffuseDirs.Length;
     }
 
-    private void UpdateStateMachine()
+    private void UpdateStateMachine(float gameDeltaTime)
     {
-        currentConsuming_mW = 0f;
-        switch (currentState)
+        AccumulateStateResidency(currentState, gameDeltaTime);
+        currentConsuming_mW = GetPowerMilliwatts(currentState);
+
+        if (currentState == SensorNodeState.DeepSleep)
         {
-            case NodeState.DeepSleep:
-                currentConsuming_mW = powerDeepSleep;
-                if (currentBatteryJoules >= wakeUpThreshold) SwitchState(NodeState.Sensing);
-                break;
-            case NodeState.Sensing:
-                currentConsuming_mW = powerSensing;
-                stateTimer += GetGameTimeDelta();
-                if (stateTimer >= 3.0f) SwitchState(NodeState.Computing);
-                break;
-            case NodeState.Computing:
-                currentConsuming_mW = powerComputing;
-                stateTimer += GetGameTimeDelta();
-                if (stateTimer >= 12.0f) SwitchState(NodeState.Transmitting);
-                break;
-            case NodeState.Transmitting:
-                currentConsuming_mW = powerTransmitting;
-                stateTimer += GetGameTimeDelta();
-                if (stateTimer >= 0.1f) SwitchState(NodeState.DeepSleep); // 테스트용 딥슬립 회귀
-                break;
+            SensorNodeState wakeUpState = currentBatteryJoules >= wakeUpThreshold ? SensorNodeState.Idle : SensorNodeState.DeepSleep;
+            if (wakeUpState != SensorNodeState.DeepSleep)
+            {
+                SwitchState(wakeUpState);
+                currentConsuming_mW = GetPowerMilliwatts(currentState);
+            }
+        }
+        else
+        {
+            stateTimer += gameDeltaTime;
+
+            float stateDuration = GetDurationSeconds(currentState);
+            if (stateDuration <= 0f || stateTimer >= stateDuration)
+            {
+                RegisterStateCompletion(currentState);
+                SwitchState(GetNextState(currentState, currentBatteryJoules));
+                currentConsuming_mW = GetPowerMilliwatts(currentState);
+            }
         }
 
-        float consumedJoules = currentConsuming_mW / 1000f * GetGameTimeDelta();
+        float consumedJoules = currentConsuming_mW / 1000f * gameDeltaTime;
         ConsumeEnergy(consumedJoules);
         windowConsumedJoules += consumedJoules; // 누적
+        totalConsumedJoules += consumedJoules;
 
-        if (currentBatteryJoules <= sleepThreshold && currentState != NodeState.DeepSleep)
+        if (currentBatteryJoules <= sleepThreshold && currentState != SensorNodeState.DeepSleep)
         {
-            SwitchState(NodeState.DeepSleep);
+            windowDepletionCount++;
+            totalDepletionCount++;
+            SwitchState(SensorNodeState.DeepSleep);
         }
     }
 
-    private void SwitchState(NodeState newState) { currentState = newState; stateTimer = 0f; }
+    private void SwitchState(SensorNodeState newState)
+    {
+        if (currentState == newState) return;
+
+        if (currentState == SensorNodeState.DeepSleep && newState != SensorNodeState.DeepSleep)
+        {
+            windowWakeUpCount++;
+            totalWakeUpCount++;
+        }
+
+        if (newState == SensorNodeState.DeepSleep)
+        {
+            windowDeepSleepEntryCount++;
+            totalDeepSleepEntryCount++;
+        }
+
+        currentState = newState;
+        stateTimer = 0f;
+    }
+
+    private void RegisterStateCompletion(SensorNodeState completedState)
+    {
+        switch (completedState)
+        {
+            case SensorNodeState.Sensing:
+                windowSensingCompletionCount++;
+                totalSensingCompletionCount++;
+                break;
+            case SensorNodeState.Computing:
+                windowInferenceCompletionCount++;
+                totalInferenceCompletionCount++;
+                break;
+            case SensorNodeState.Transmitting:
+                windowTransmissionCompletionCount++;
+                totalTransmissionCompletionCount++;
+                break;
+        }
+    }
+
+    private void AccumulateStateResidency(SensorNodeState state, float gameDeltaTime)
+    {
+        switch (state)
+        {
+            case SensorNodeState.DeepSleep:
+                windowDeepSleepSeconds += gameDeltaTime;
+                totalDeepSleepSeconds += gameDeltaTime;
+                break;
+            case SensorNodeState.Idle:
+                windowIdleSeconds += gameDeltaTime;
+                totalIdleSeconds += gameDeltaTime;
+                break;
+            case SensorNodeState.Sensing:
+                windowSensingSeconds += gameDeltaTime;
+                totalSensingSeconds += gameDeltaTime;
+                break;
+            case SensorNodeState.Computing:
+                windowComputingSeconds += gameDeltaTime;
+                totalComputingSeconds += gameDeltaTime;
+                break;
+            case SensorNodeState.Transmitting:
+                windowTransmittingSeconds += gameDeltaTime;
+                totalTransmittingSeconds += gameDeltaTime;
+                break;
+        }
+    }
+
     private void AddEnergy(float j) { currentBatteryJoules = Mathf.Clamp(currentBatteryJoules + j, 0, maxBatteryJoules); }
     private void ConsumeEnergy(float j) { currentBatteryJoules = Mathf.Clamp(currentBatteryJoules - j, 0, maxBatteryJoules); }
+
+    private float GetPowerMilliwatts(SensorNodeState state)
+    {
+        switch (state)
+        {
+            case SensorNodeState.DeepSleep: return powerDeepSleep;
+            case SensorNodeState.Idle: return powerIdle;
+            case SensorNodeState.Sensing: return powerSensing;
+            case SensorNodeState.Computing: return powerComputing;
+            case SensorNodeState.Transmitting: return powerTransmitting;
+            default: return 0f;
+        }
+    }
+
+    private float GetDurationSeconds(SensorNodeState state)
+    {
+        switch (state)
+        {
+            case SensorNodeState.Idle: return durationIdle;
+            case SensorNodeState.Sensing: return durationSensing;
+            case SensorNodeState.Computing: return durationComputing;
+            case SensorNodeState.Transmitting: return durationTransmitting;
+            default: return 0f;
+        }
+    }
+
+    private SensorNodeState GetNextState(SensorNodeState state, float batteryJoules)
+    {
+        if (batteryJoules <= sleepThreshold)
+        {
+            return SensorNodeState.DeepSleep;
+        }
+
+        switch (state)
+        {
+            case SensorNodeState.DeepSleep:
+                return batteryJoules >= wakeUpThreshold ? SensorNodeState.Idle : SensorNodeState.DeepSleep;
+            case SensorNodeState.Idle:
+                return SensorNodeState.Sensing;
+            case SensorNodeState.Sensing:
+                return SensorNodeState.Computing;
+            case SensorNodeState.Computing:
+                return SensorNodeState.Transmitting;
+            case SensorNodeState.Transmitting:
+                return SensorNodeState.DeepSleep;
+            default:
+                return SensorNodeState.DeepSleep;
+        }
+    }
+
+    public float GetBatteryPercent()
+    {
+        if (maxBatteryJoules <= 0f) return 0f;
+        return Mathf.Clamp01(currentBatteryJoules / maxBatteryJoules) * 100f;
+    }
+
+    public float GetWindowTrackedSeconds()
+    {
+        return windowDeepSleepSeconds + windowIdleSeconds + windowSensingSeconds + windowComputingSeconds + windowTransmittingSeconds;
+    }
+
+    public float GetWindowDutyCyclePercent()
+    {
+        float trackedSeconds = GetWindowTrackedSeconds();
+        if (trackedSeconds <= 0f) return 0f;
+        return ((trackedSeconds - windowDeepSleepSeconds) / trackedSeconds) * 100f;
+    }
+
+    public float GetWindowNetEnergyJoules()
+    {
+        return windowHarvestedJoules - windowConsumedJoules;
+    }
 
     /// <summary>
     /// UniStorm의 시간 배속에 동기화된 게임 시간 기준 deltaTime을 반환합니다.
@@ -182,5 +358,20 @@ public class IntermittentSensorNode : MonoBehaviour
     }
 
     // 윈도우 초기화
-    public void ResetWindowData() { windowHarvestedJoules = 0f; windowConsumedJoules = 0f; }
+    public void ResetWindowData()
+    {
+        windowHarvestedJoules = 0f;
+        windowConsumedJoules = 0f;
+        windowDeepSleepSeconds = 0f;
+        windowIdleSeconds = 0f;
+        windowSensingSeconds = 0f;
+        windowComputingSeconds = 0f;
+        windowTransmittingSeconds = 0f;
+        windowWakeUpCount = 0;
+        windowDeepSleepEntryCount = 0;
+        windowDepletionCount = 0;
+        windowSensingCompletionCount = 0;
+        windowInferenceCompletionCount = 0;
+        windowTransmissionCompletionCount = 0;
+    }
 }

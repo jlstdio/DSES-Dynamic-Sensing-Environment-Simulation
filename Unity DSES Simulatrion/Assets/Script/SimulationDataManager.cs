@@ -10,22 +10,43 @@ public class SimulationDataManager : MonoBehaviour
     private int windowCount = 0;
     
     private IntermittentSensorNode[] allNodes;
-    private string filePath;
+    private string nodeMetricsPath;
+    private string networkMetricsPath;
 
-    // 그래프용 데이터를 저장할 큐 (최근 24시간 기록 유지)
     public static List<float> networkAverageEfficiencyHistory = new List<float>();
+    public static List<float> networkAliveRatioHistory = new List<float>();
+    public static List<float> networkAverageBatteryHistory = new List<float>();
+
+    public static float latestNetworkEnergyNeutrality = 0f;
+    public static float latestNetworkAliveRatio = 0f;
+    public static float latestNetworkActiveRatio = 0f;
+    public static float latestNetworkAverageBattery = 0f;
+    public static int latestNetworkInferenceCount = 0;
+    public static int latestNetworkTransmissionCount = 0;
+    public static int latestNetworkDepletionCount = 0;
 
     void Start()
     {
         allNodes = FindObjectsOfType<IntermittentSensorNode>();
-        filePath = Path.Combine(Application.dataPath, "Simulation_Log.csv");
+        nodeMetricsPath = Path.Combine(Application.dataPath, "Simulation_NodeMetrics.csv");
+        networkMetricsPath = Path.Combine(Application.dataPath, "Simulation_NetworkMetrics.csv");
 
-        // CSV 헤더 작성
-        if (!File.Exists(filePath))
+        if (!File.Exists(nodeMetricsPath))
         {
-            File.WriteAllText(filePath, "TimeWindow(h),NodeID,State,Battery(J),Harvested_1hr(J),Consumed_1hr(J),Efficiency(%)\n");
+            File.WriteAllText(
+                nodeMetricsPath,
+                "TimeWindow(h),NodeID,State,Battery(J),Battery(%),Harvested_1hr(J),Consumed_1hr(J),NetEnergy_1hr(J),Efficiency(%),DutyCycle(%),DeepSleep_s,Idle_s,Sensing_s,Computing_s,Transmitting_s,WakeUps,DeepSleepEntries,DepletionEvents,SensingCompletions,InferenceCompletions,TransmissionCompletions\n");
         }
-        Debug.Log($"[Data Logger] CSV 파일 경로: {filePath}");
+
+        if (!File.Exists(networkMetricsPath))
+        {
+            File.WriteAllText(
+                networkMetricsPath,
+                "TimeWindow(h),NodeCount,AliveRatio(%),ActiveRatio(%),AverageBattery(%),NetHarvested(J),NetConsumed(J),NetEnergy(J),EnergyNeutrality(%),WakeUps,DepletionEvents,InferenceCompletions,TransmissionCompletions\n");
+        }
+
+        Debug.Log($"[Data Logger] Node CSV: {nodeMetricsPath}");
+        Debug.Log($"[Data Logger] Network CSV: {networkMetricsPath}");
     }
 
     void Update()
@@ -41,7 +62,6 @@ public class SimulationDataManager : MonoBehaviour
         }
     }
 
-    /// <summary>UniStorm 배속에 동기화된 게임 시간 deltaTime 반환</summary>
     private float GetGameTimeDelta()
     {
         var uni = UniStorm.UniStormSystem.Instance;
@@ -58,34 +78,82 @@ public class SimulationDataManager : MonoBehaviour
 
     private void LogDataToCSV()
     {
-        StringBuilder sb = new StringBuilder();
+        allNodes = FindObjectsOfType<IntermittentSensorNode>();
+
+        StringBuilder nodeBuilder = new StringBuilder();
+        StringBuilder networkBuilder = new StringBuilder();
         float totalNetHarvest = 0f;
         float totalNetConsume = 0f;
+        float totalBatteryPercent = 0f;
+        int aliveNodes = 0;
+        int activeNodes = 0;
+        int totalWakeUps = 0;
+        int totalDepletions = 0;
+        int totalInferences = 0;
+        int totalTransmissions = 0;
 
         foreach (var node in allNodes)
         {
-            // 효율 계산 (소비 대비 충전 비율)
             float efficiency = (node.windowConsumedJoules > 0) ? 
                 (node.windowHarvestedJoules / node.windowConsumedJoules) * 100f : 0f;
+            float batteryPercent = node.GetBatteryPercent();
+            float nodeNetEnergy = node.GetWindowNetEnergyJoules();
+            float dutyCycle = node.GetWindowDutyCyclePercent();
 
-            sb.AppendLine($"{windowCount + 1},{node.gameObject.name},{node.currentState}," +
-                          $"{node.currentBatteryJoules:F2},{node.windowHarvestedJoules:F4}," +
-                          $"{node.windowConsumedJoules:F4},{efficiency:F2}");
+            nodeBuilder.AppendLine(
+                $"{windowCount + 1},{node.nodeID},{node.currentState}," +
+                $"{node.currentBatteryJoules:F2},{batteryPercent:F2},{node.windowHarvestedJoules:F4}," +
+                $"{node.windowConsumedJoules:F4},{nodeNetEnergy:F4},{efficiency:F2},{dutyCycle:F2}," +
+                $"{node.windowDeepSleepSeconds:F2},{node.windowIdleSeconds:F2},{node.windowSensingSeconds:F2}," +
+                $"{node.windowComputingSeconds:F2},{node.windowTransmittingSeconds:F2}," +
+                $"{node.windowWakeUpCount},{node.windowDeepSleepEntryCount},{node.windowDepletionCount}," +
+                $"{node.windowSensingCompletionCount},{node.windowInferenceCompletionCount},{node.windowTransmissionCompletionCount}");
 
             totalNetHarvest += node.windowHarvestedJoules;
             totalNetConsume += node.windowConsumedJoules;
+            totalBatteryPercent += batteryPercent;
+            totalWakeUps += node.windowWakeUpCount;
+            totalDepletions += node.windowDepletionCount;
+            totalInferences += node.windowInferenceCompletionCount;
+            totalTransmissions += node.windowTransmissionCompletionCount;
 
-            // 다음 1시간을 위해 노드의 누적 데이터 초기화
+            if (node.currentBatteryJoules > 0f) aliveNodes++;
+            if (node.currentState != SensorNodeState.DeepSleep) activeNodes++;
+
             node.ResetWindowData();
         }
 
-        File.AppendAllText(filePath, sb.ToString());
+        File.AppendAllText(nodeMetricsPath, nodeBuilder.ToString());
 
-        // 대시보드 그래프용 네트워크 평균 효율 저장
         float netAvgEfficiency = (totalNetConsume > 0) ? (totalNetHarvest / totalNetConsume) * 100f : 0f;
+        float networkNetEnergy = totalNetHarvest - totalNetConsume;
+        float aliveRatio = allNodes.Length > 0 ? (aliveNodes / (float)allNodes.Length) * 100f : 0f;
+        float activeRatio = allNodes.Length > 0 ? (activeNodes / (float)allNodes.Length) * 100f : 0f;
+        float avgBatteryPercent = allNodes.Length > 0 ? totalBatteryPercent / allNodes.Length : 0f;
+
+        networkBuilder.AppendLine(
+            $"{windowCount + 1},{allNodes.Length},{aliveRatio:F2},{activeRatio:F2},{avgBatteryPercent:F2}," +
+            $"{totalNetHarvest:F4},{totalNetConsume:F4},{networkNetEnergy:F4},{netAvgEfficiency:F2}," +
+            $"{totalWakeUps},{totalDepletions},{totalInferences},{totalTransmissions}");
+        File.AppendAllText(networkMetricsPath, networkBuilder.ToString());
+
         networkAverageEfficiencyHistory.Add(netAvgEfficiency);
         if (networkAverageEfficiencyHistory.Count > 24) networkAverageEfficiencyHistory.RemoveAt(0); // 최대 24개 유지
+        networkAliveRatioHistory.Add(aliveRatio);
+        if (networkAliveRatioHistory.Count > 24) networkAliveRatioHistory.RemoveAt(0);
+        networkAverageBatteryHistory.Add(avgBatteryPercent);
+        if (networkAverageBatteryHistory.Count > 24) networkAverageBatteryHistory.RemoveAt(0);
 
-        Debug.Log($"[Data Logger] {windowCount + 1}시간 차 데이터 CSV 저장 완료. 평균 효율: {netAvgEfficiency:F1}%");
+        latestNetworkEnergyNeutrality = netAvgEfficiency;
+        latestNetworkAliveRatio = aliveRatio;
+        latestNetworkActiveRatio = activeRatio;
+        latestNetworkAverageBattery = avgBatteryPercent;
+        latestNetworkInferenceCount = totalInferences;
+        latestNetworkTransmissionCount = totalTransmissions;
+        latestNetworkDepletionCount = totalDepletions;
+
+        Debug.Log(
+            $"[Data Logger] Window {windowCount + 1} 저장 완료 | Energy Neutrality: {netAvgEfficiency:F1}% | " +
+            $"Alive: {aliveRatio:F1}% | Avg Battery: {avgBatteryPercent:F1}% | Inference: {totalInferences} | Tx: {totalTransmissions}");
     }
 }
