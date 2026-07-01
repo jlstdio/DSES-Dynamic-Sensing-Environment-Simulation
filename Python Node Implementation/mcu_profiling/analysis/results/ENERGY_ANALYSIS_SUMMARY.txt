@@ -1,0 +1,132 @@
+# ESP32-C3 Supermini Energy Profile Analysis Results
+# Generated on: 2025-12-25
+# Analysis based on 6 CSV profile files
+
+## Summary of All Modes
+
+### Mode 0: Idle (대기 상태)
+- Average Duration: 45,887.75 ms
+- Average Power: 434.85 mW
+- Average Total Energy: 19,776.34 J
+- Measured across: 4 sensor configurations
+
+### Mode 1: Layer 0 (추론 레이어 0)
+- Average Duration: 38,785.40 ms
+- Average Power: 459.96 mW
+- Average Total Energy: 15,061.69 J
+- Computational Load: 232,800 FLOPs
+- Average Performance: 60.18 FLOPs/ms
+- Average Energy per MFLOP: 64.70 J/MFLOP
+- Measured across: 5 sensor configurations
+
+### Mode 2: Layer 1 (추론 레이어 1)
+- Average Duration: 45,235.67 ms
+- Average Power: 499.29 mW
+- Average Total Energy: 22,441.99 J
+- Computational Load: 291,000 FLOPs
+- Average Performance: 63.50 FLOPs/ms
+- Average Energy per MFLOP: 77.12 J/MFLOP
+- Measured across: 6 sensor configurations
+
+### Mode 3: Layer 2 (추론 레이어 2)
+- Average Duration: 45,567.17 ms
+- Average Power: 498.79 mW
+- Average Total Energy: 22,572.82 J
+- Computational Load: 436,500 FLOPs
+- Average Performance: 65.79 FLOPs/ms
+- Average Energy per MFLOP: 51.71 J/MFLOP
+- Measured across: 6 sensor configurations
+
+### Mode 4: Layer 3 (추론 레이어 3)
+- Average Duration: 49,053.60 ms
+- Average Power: 495.50 mW
+- Average Total Energy: 24,483.23 J
+- Computational Load: 582,000 FLOPs
+- Average Performance: 45.92 FLOPs/ms
+- Average Energy per MFLOP: 42.07 J/MFLOP
+- Measured across: 5 sensor configurations
+
+### Mode 5: Layer 4 (추론 레이어 4)
+- Average Duration: 49,305.20 ms
+- Average Power: 494.75 mW
+- Average Total Energy: 24,556.30 J
+- Computational Load: 727,500 FLOPs
+- Average Performance: 48.02 FLOPs/ms
+- Average Energy per MFLOP: 33.75 J/MFLOP
+- Measured across: 5 sensor configurations
+
+### Mode 6: Transmission (전송)
+- Average Duration: 57,495.17 ms
+- Average Power: 646.55 mW
+- Average Total Energy: 39,285.30 J
+- Assumed Data Size: 256 bytes per transmission
+- Average Energy per Byte: 153.46 mJ/byte (153,458.19 µJ/byte)
+- Measured across: 6 sensor configurations
+
+## Mode 7: Sensing (센서 사용)
+
+All sensors operated for 3 seconds (3000 ms) measurement period:
+
+### accel_only (가속도계만)
+- Average Power: 458.58 mW
+- Energy for 3 seconds: 1,375.74 J
+- Energy per second: 458.58 mJ/s
+
+### accel+gyro (가속도계 + 자이로스코프)
+- Average Power: 439.48 mW
+- Energy for 3 seconds: 1,318.44 J
+- Energy per second: 439.48 mJ/s
+
+### accel+gyro+mag (가속도계 + 자이로스코프 + 자기계)
+- Average Power: 505.95 mW
+- Energy for 3 seconds: 1,517.85 J
+- Energy per second: 505.95 mJ/s
+
+### gyro+mag (자이로스코프 + 자기계)
+- Average Power: 505.03 mW
+- Energy for 3 seconds: 1,515.09 J
+- Energy per second: 505.03 mJ/s
+
+### ultrasonic (초음파 센서)
+- Average Power: 449.66 mW
+- Energy for 3 seconds: 1,348.97 J
+- Energy per second: 449.66 mJ/s
+
+---
+
+## Key Findings
+
+### Layer Computational Performance
+- Layer 0 (lightest): 232,800 FLOPs @ 60.18 FLOPs/ms
+- Layer 1: 291,000 FLOPs @ 63.50 FLOPs/ms
+- Layer 2: 436,500 FLOPs @ 65.79 FLOPs/ms
+- Layer 3: 582,000 FLOPs @ 45.92 FLOPs/ms
+- Layer 4 (heaviest): 727,500 FLOPs @ 48.02 FLOPs/ms
+
+### Energy Efficiency by Layer
+- Most efficient: Layer 4 at 33.75 J/MFLOP
+- Least efficient: Layer 1 at 77.12 J/MFLOP
+
+### Sensor Energy Consumption (ranked lowest to highest)
+1. accel+gyro: 439.48 mW
+2. ultrasonic: 449.66 mW
+3. accel_only: 458.58 mW
+4. gyro+mag: 505.03 mW
+5. accel+gyro+mag: 505.95 mW
+
+### Transmission Energy
+- Average power: 646.55 mW (highest power consumption mode)
+- Energy per byte: 153.46 mJ/byte (assuming 256 bytes)
+
+### Idle Power
+- Average: 434.85 mW (baseline power consumption)
+
+---
+
+## Notes
+- All energy values in millijoules (mJ) unless otherwise specified
+- Power values in milliwatts (mW)
+- Duration values in milliseconds (ms)
+- FLOPs (Floating Point Operations) calculated based on code analysis
+- Transmission byte assumption: 256 bytes (may need adjustment based on actual payload)
+- Sensor measurements: 3-second operation period

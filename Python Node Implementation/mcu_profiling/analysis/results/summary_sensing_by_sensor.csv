@@ -1,0 +1,6 @@
+Mode,Description,Energy_per_ms_mW,Energy_3sec_J
+Mode 7 (Sensing),data/accel+gyro,439.4797340710333,1318.4392022130999
+Mode 7 (Sensing),data/ultrasonic,449.6552353741496,1348.9657061224486
+Mode 7 (Sensing),data/accel_only,458.5803018867925,1375.7409056603774
+Mode 7 (Sensing),data/gyro+mag,505.02889327088985,1515.0866798126694
+Mode 7 (Sensing),data/accel+gyro+mag,505.950564516129,1517.8516935483872

@@ -1,0 +1,13 @@
+Mode,Description,Avg_Duration_ms,Avg_Power_mW,Avg_Energy_Total_mJ,Notes,FLOPs,Avg_FLOPs_per_ms,Avg_Energy_per_MFLOP_mJ,Avg_Energy_per_Byte_uJ,Energy_for_3sec_mJ,Energy_for_3sec_J,Energy_per_sec_mJ
+0 (Idle),Idle state - waiting,45887.75,434.85,19776336.99,Measured across 4 sensor configs,,,,,,,
+1 (Layer 0),Inference Layer 0,38785.4,459.96,15061694.07,Measured across 5 sensor configs,232800.0,60.18,64697998.58,,,,
+2 (Layer 1),Inference Layer 1,45235.67,499.29,22441992.88,Measured across 6 sensor configs,291000.0,63.5,77120250.43,,,,
+3 (Layer 2),Inference Layer 2,45567.17,498.79,22572818.2,Measured across 6 sensor configs,436500.0,65.79,51713214.66,,,,
+4 (Layer 3),Inference Layer 3,49053.6,495.5,24483231.07,Measured across 5 sensor configs,582000.0,45.92,42067407.34,,,,
+5 (Layer 4),Inference Layer 4,49305.2,494.75,24556295.91,Measured across 5 sensor configs,727500.0,48.02,33754358.64,,,,
+6 (Transmission),Data transmission,57495.17,646.55,39285296.42,Assumed 256 bytes per transmission,,,,153458189.14,,,
+7 (Sensing: accel+gyro),Sensor operation - accel+gyro,,439.48,,3 seconds operation,,,,,1318439.2,1318.44,439479.73
+7 (Sensing: accel+gyro+mag),Sensor operation - accel+gyro+mag,,505.95,,3 seconds operation,,,,,1517851.69,1517.85,505950.56
+7 (Sensing: accel_only),Sensor operation - accel_only,,458.58,,3 seconds operation,,,,,1375740.91,1375.74,458580.3
+7 (Sensing: gyro+mag),Sensor operation - gyro+mag,,505.03,,3 seconds operation,,,,,1515086.68,1515.09,505028.89
+7 (Sensing: ultrasonic),Sensor operation - ultrasonic,,449.66,,3 seconds operation,,,,,1348965.71,1348.97,449655.24

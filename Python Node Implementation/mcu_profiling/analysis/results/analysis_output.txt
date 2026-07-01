@@ -1,0 +1,622 @@
+Found 6 CSV files:
+  - eps32-c3-supermini_profiles_accel+gyro+mag.csv
+  - eps32-c3-supermini_profiles_accel+gyro.csv
+  - eps32-c3-supermini_profiles_accel_only.csv
+  - eps32-c3-supermini_profiles_gyro+mag.csv
+  - eps32-c3-supermini_profiles_no-sensing.csv
+  - eps32-c3-supermini_profiles_ultrasonic.csv
+
+=== Layer Computational Load (FLOPs) ===
+Layer 0: 232,800 FLOPs
+Layer 1: 291,000 FLOPs
+Layer 2: 436,500 FLOPs
+Layer 3: 582,000 FLOPs
+Layer 4: 727,500 FLOPs
+
+
+================================================================================
+Analyzing: eps32-c3-supermini_profiles_accel+gyro+mag.csv
+================================================================================
+
+Columns found: ['Time(ms)', 'Voltage(V)', 'Current(mA)', 'Power(mW)', 'Mode']
+Total records: 1019
+Available modes: [np.int64(1), np.int64(2), np.int64(3), np.int64(6), np.int64(7)]
+First few rows:
+   Time(ms)  Voltage(V)  Current(mA)  Power(mW)  Mode
+0      1278        5.06        104.3     528.18     1
+1      1291        5.07        100.0     507.20     1
+2      1303        5.07        103.5     524.95     1
+3      1315        5.07        103.9     526.57     1
+4      1328        5.07        103.5     524.54     1
+
+Processing mode 1: 68 records
+Mode 1: Layer 0 (추론)
+  Duration: 843.00 ms
+  Power - Mean: 520.17 mW, Std: 11.25 mW
+  Power - Max: 542.28 mW, Min: 500.72 mW
+  Total Energy: 438499.59 mJ
+  Energy per ms: 520.17 mW
+  Computational Load: 232,800 FLOPs
+  Performance: 276.16 FLOPs/ms
+
+Processing mode 2: 130 records
+Mode 2: Layer 1 (추론)
+  Duration: 1613.00 ms
+  Power - Mean: 523.75 mW, Std: 11.06 mW
+  Power - Max: 548.94 mW, Min: 502.64 mW
+  Total Energy: 844810.36 mJ
+  Energy per ms: 523.75 mW
+  Computational Load: 291,000 FLOPs
+  Performance: 180.41 FLOPs/ms
+
+Processing mode 3: 193 records
+Mode 3: Layer 2 (추론)
+  Duration: 2395.00 ms
+  Power - Mean: 522.13 mW, Std: 11.54 mW
+  Power - Max: 541.26 mW, Min: 500.72 mW
+  Total Energy: 1250490.06 mJ
+  Energy per ms: 522.13 mW
+  Computational Load: 436,500 FLOPs
+  Performance: 182.25 FLOPs/ms
+
+Processing mode 6: 8 records
+Mode 6: Transmission (전송)
+  Duration: 11791.00 ms
+  Power - Mean: 673.78 mW, Std: 234.86 mW
+  Power - Max: 1032.02 mW, Min: 491.36 mW
+  Total Energy: 7944510.50 mJ
+  Energy per ms: 673.78 mW
+
+Processing mode 7: 620 records
+Mode 7: Sensing (accel+gyro+mag)
+  Duration: 9320.00 ms
+  Power - Mean: 505.95 mW, Std: 13.92 mW
+  Power - Max: 533.66 mW, Min: 439.26 mW
+  Total Energy: 4715459.26 mJ
+  Energy per ms: 505.95 mW
+
+
+================================================================================
+Analyzing: eps32-c3-supermini_profiles_accel+gyro.csv
+================================================================================
+
+Columns found: ['Time(ms)', 'Voltage(V)', 'Current(mA)', 'Power(mW)', 'Mode']
+Total records: 6661
+Available modes: [np.int64(2), np.int64(3), np.int64(4), np.int64(5), np.int64(6), np.int64(7)]
+First few rows:
+   Time(ms)  Voltage(V)  Current(mA)  Power(mW)  Mode
+0      4424        4.93         95.2     469.53     7
+1      4436        4.93         96.0     473.47     7
+2      4448        4.93         95.6     471.50     7
+3      4461        4.93         95.5     471.01     7
+4      4473        4.93         95.3     470.02     7
+
+Processing mode 2: 129 records
+Mode 2: Layer 1 (추론)
+  Duration: 1590.00 ms
+  Power - Mean: 487.47 mW, Std: 2.48 mW
+  Power - Max: 498.97 mW, Min: 481.96 mW
+  Total Energy: 775083.83 mJ
+  Energy per ms: 487.47 mW
+  Computational Load: 291,000 FLOPs
+  Performance: 183.02 FLOPs/ms
+
+Processing mode 3: 190 records
+Mode 3: Layer 2 (추론)
+  Duration: 2345.00 ms
+  Power - Mean: 488.40 mW, Std: 2.85 mW
+  Power - Max: 506.19 mW, Min: 484.03 mW
+  Total Energy: 1145295.41 mJ
+  Energy per ms: 488.40 mW
+  Computational Load: 436,500 FLOPs
+  Performance: 186.14 FLOPs/ms
+
+Processing mode 4: 253 records
+Mode 4: Layer 3 (추론)
+  Duration: 3125.00 ms
+  Power - Mean: 489.95 mW, Std: 2.74 mW
+  Power - Max: 505.69 mW, Min: 476.92 mW
+  Total Energy: 1531087.08 mJ
+  Energy per ms: 489.95 mW
+  Computational Load: 582,000 FLOPs
+  Performance: 186.24 FLOPs/ms
+
+Processing mode 5: 316 records
+Mode 5: Layer 4 (추론)
+  Duration: 3906.00 ms
+  Power - Mean: 489.76 mW, Std: 2.72 mW
+  Power - Max: 502.16 mW, Min: 474.07 mW
+  Total Energy: 1913001.69 mJ
+  Energy per ms: 489.76 mW
+  Computational Load: 727,500 FLOPs
+  Performance: 186.25 FLOPs/ms
+
+Processing mode 6: 170 records
+Mode 6: Transmission (전송)
+  Duration: 21821.00 ms
+  Power - Mean: 440.66 mW, Std: 69.07 mW
+  Power - Max: 974.40 mW, Min: 424.73 mW
+  Total Energy: 9615614.90 mJ
+  Energy per ms: 440.66 mW
+
+Processing mode 7: 5603 records
+Mode 7: Sensing (accel+gyro)
+  Duration: 82221.00 ms
+  Power - Mean: 439.48 mW, Std: 18.14 mW
+  Power - Max: 507.66 mW, Min: 413.50 mW
+  Total Energy: 36134463.22 mJ
+  Energy per ms: 439.48 mW
+
+
+================================================================================
+Analyzing: eps32-c3-supermini_profiles_accel_only.csv
+================================================================================
+
+Columns found: ['Time(ms)', 'Voltage(V)', 'Current(mA)', 'Power(mW)', 'Mode']
+Total records: 5603
+Available modes: [np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5), np.int64(6), np.int64(7)]
+First few rows:
+   Time(ms)  Voltage(V)  Current(mA)  Power(mW)  Mode
+0      2173        4.92         92.2     453.26     7
+1      2186        4.92         92.0     452.27     7
+2      2198        4.91         92.0     451.90     7
+3      2210        4.91         93.6     459.76     7
+4      2223        4.91         92.2     452.52     7
+
+Processing mode 0: 82 records
+Mode 0: Idle (대기)
+  Duration: 29497.00 ms
+  Power - Mean: 414.96 mW, Std: 2.09 mW
+  Power - Max: 420.89 mW, Min: 410.51 mW
+  Total Energy: 12240121.88 mJ
+  Energy per ms: 414.96 mW
+
+Processing mode 1: 205 records
+Mode 1: Layer 0 (추론)
+  Duration: 30263.00 ms
+  Power - Mean: 472.56 mW, Std: 4.84 mW
+  Power - Max: 488.84 mW, Min: 414.96 mW
+  Total Energy: 14301115.76 mJ
+  Energy per ms: 472.56 mW
+  Computational Load: 232,800 FLOPs
+  Performance: 7.69 FLOPs/ms
+
+Processing mode 2: 384 records
+Mode 2: Layer 1 (추론)
+  Duration: 59576.00 ms
+  Power - Mean: 473.25 mW, Std: 4.29 mW
+  Power - Max: 491.38 mW, Min: 421.04 mW
+  Total Energy: 28194086.01 mJ
+  Energy per ms: 473.25 mW
+  Computational Load: 291,000 FLOPs
+  Performance: 4.88 FLOPs/ms
+
+Processing mode 3: 575 records
+Mode 3: Layer 2 (추론)
+  Duration: 60351.00 ms
+  Power - Mean: 472.53 mW, Std: 2.82 mW
+  Power - Max: 487.06 mW, Min: 459.27 mW
+  Total Energy: 28517372.54 mJ
+  Energy per ms: 472.53 mW
+  Computational Load: 436,500 FLOPs
+  Performance: 7.23 FLOPs/ms
+
+Processing mode 4: 512 records
+Mode 4: Layer 3 (추론)
+  Duration: 32147.00 ms
+  Power - Mean: 473.60 mW, Std: 2.70 mW
+  Power - Max: 489.42 mW, Min: 466.48 mW
+  Total Energy: 15224818.57 mJ
+  Energy per ms: 473.60 mW
+  Computational Load: 582,000 FLOPs
+  Performance: 18.10 FLOPs/ms
+
+Processing mode 5: 640 records
+Mode 5: Layer 4 (추론)
+  Duration: 32938.00 ms
+  Power - Mean: 473.16 mW, Std: 2.47 mW
+  Power - Max: 486.66 mW, Min: 467.35 mW
+  Total Energy: 15584903.42 mJ
+  Energy per ms: 473.16 mW
+  Computational Load: 727,500 FLOPs
+  Performance: 22.09 FLOPs/ms
+
+Processing mode 6: 25 records
+Mode 6: Transmission (전송)
+  Duration: 63626.00 ms
+  Power - Mean: 634.49 mW, Std: 223.40 mW
+  Power - Max: 905.60 mW, Min: 415.77 mW
+  Total Energy: 40369984.39 mJ
+  Energy per ms: 634.49 mW
+
+Processing mode 7: 3180 records
+Mode 7: Sensing (accel_only)
+  Duration: 69113.00 ms
+  Power - Mean: 458.58 mW, Std: 3.89 mW
+  Power - Max: 486.17 mW, Min: 414.47 mW
+  Total Energy: 31693860.40 mJ
+  Energy per ms: 458.58 mW
+
+
+================================================================================
+Analyzing: eps32-c3-supermini_profiles_gyro+mag.csv
+================================================================================
+
+Columns found: ['Time(ms)', 'Voltage(V)', 'Current(mA)', 'Power(mW)', 'Mode']
+Total records: 7228
+Available modes: [np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5), np.int64(6), np.int64(7)]
+First few rows:
+   Time(ms)  Voltage(V)  Current(mA)  Power(mW)  Mode
+0      3444        5.04        100.6     506.62     7
+1      3457        5.04         96.3     485.74     7
+2      3469        5.04        100.5     506.52     7
+3      3481        5.04         99.9     503.10     7
+4      3494        5.04        100.3     505.51     7
+
+Processing mode 0: 81 records
+Mode 0: Idle (대기)
+  Duration: 31607.00 ms
+  Power - Mean: 458.75 mW, Std: 10.97 mW
+  Power - Max: 474.38 mW, Min: 438.36 mW
+  Total Energy: 14499594.19 mJ
+  Energy per ms: 458.75 mW
+
+Processing mode 1: 209 records
+Mode 1: Layer 0 (추론)
+  Duration: 32405.00 ms
+  Power - Mean: 520.44 mW, Std: 10.55 mW
+  Power - Max: 539.86 mW, Min: 499.36 mW
+  Total Energy: 16864941.93 mJ
+  Energy per ms: 520.44 mW
+  Computational Load: 232,800 FLOPs
+  Performance: 7.18 FLOPs/ms
+
+Processing mode 2: 381 records
+Mode 2: Layer 1 (추론)
+  Duration: 65779.00 ms
+  Power - Mean: 520.32 mW, Std: 11.32 mW
+  Power - Max: 545.47 mW, Min: 488.88 mW
+  Total Energy: 34226143.09 mJ
+  Energy per ms: 520.32 mW
+  Computational Load: 291,000 FLOPs
+  Performance: 4.42 FLOPs/ms
+
+Processing mode 3: 580 records
+Mode 3: Layer 2 (추론)
+  Duration: 64614.00 ms
+  Power - Mean: 520.31 mW, Std: 10.77 mW
+  Power - Max: 540.44 mW, Min: 495.04 mW
+  Total Energy: 33619086.42 mJ
+  Energy per ms: 520.31 mW
+  Computational Load: 436,500 FLOPs
+  Performance: 6.76 FLOPs/ms
+
+Processing mode 4: 777 records
+Mode 4: Layer 3 (추론)
+  Duration: 65424.00 ms
+  Power - Mean: 521.99 mW, Std: 10.75 mW
+  Power - Max: 544.39 mW, Min: 499.97 mW
+  Total Energy: 34150870.79 mJ
+  Energy per ms: 521.99 mW
+  Computational Load: 582,000 FLOPs
+  Performance: 8.90 FLOPs/ms
+
+Processing mode 5: 950 records
+Mode 5: Layer 4 (추론)
+  Duration: 66135.00 ms
+  Power - Mean: 520.76 mW, Std: 10.87 mW
+  Power - Max: 543.16 mW, Min: 499.28 mW
+  Total Energy: 34440239.13 mJ
+  Energy per ms: 520.76 mW
+  Computational Load: 727,500 FLOPs
+  Performance: 11.00 FLOPs/ms
+
+Processing mode 6: 193 records
+Mode 6: Transmission (전송)
+  Duration: 84678.00 ms
+  Power - Mean: 495.21 mW, Std: 133.89 mW
+  Power - Max: 1020.18 mW, Min: 435.16 mW
+  Total Energy: 41933146.68 mJ
+  Energy per ms: 495.21 mW
+
+Processing mode 7: 4057 records
+Mode 7: Sensing (gyro+mag)
+  Duration: 89684.00 ms
+  Power - Mean: 505.03 mW, Std: 12.59 mW
+  Power - Max: 543.46 mW, Min: 437.18 mW
+  Total Energy: 45293011.26 mJ
+  Energy per ms: 505.03 mW
+
+
+================================================================================
+Analyzing: eps32-c3-supermini_profiles_no-sensing.csv
+================================================================================
+
+Columns found: ['Time(ms)', 'Voltage(V)', 'Current(mA)', 'Power(mW)', 'Mode']
+Total records: 8071
+Available modes: [np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5), np.int64(6)]
+First few rows:
+   Time(ms)  Voltage(V)  Current(mA)  Power(mW)  Mode
+0      4491        5.17         -0.4      -2.07     1
+1      4503        5.17         -0.3      -1.55     1
+2      4515        5.17         -0.6      -3.10     1
+3      4527        5.17         -0.4      -2.07     1
+4      4539        5.17         -0.2      -1.03     1
+
+Processing mode 0: 334 records
+Mode 0: Idle (대기)
+  Duration: 92244.00 ms
+  Power - Mean: 422.61 mW, Std: 48.64 mW
+  Power - Max: 1212.62 mW, Min: 166.66 mW
+  Total Energy: 38982944.09 mJ
+  Energy per ms: 422.61 mW
+
+Processing mode 1: 1317 records
+Mode 1: Layer 0 (추론)
+  Duration: 99383.00 ms
+  Power - Mean: 282.25 mW, Std: 236.93 mW
+  Power - Max: 503.29 mW, Min: -3.62 mW
+  Total Energy: 28051321.88 mJ
+  Energy per ms: 282.25 mW
+  Computational Load: 232,800 FLOPs
+  Performance: 2.34 FLOPs/ms
+
+Processing mode 2: 904 records
+Mode 2: Layer 1 (추론)
+  Duration: 80156.00 ms
+  Power - Mean: 485.68 mW, Std: 3.17 mW
+  Power - Max: 501.66 mW, Min: 467.64 mW
+  Total Energy: 38930034.85 mJ
+  Energy per ms: 485.68 mW
+  Computational Load: 291,000 FLOPs
+  Performance: 3.63 FLOPs/ms
+
+Processing mode 3: 1360 records
+Mode 3: Layer 2 (추론)
+  Duration: 80949.00 ms
+  Power - Mean: 484.71 mW, Std: 4.11 mW
+  Power - Max: 507.73 mW, Min: 460.66 mW
+  Total Energy: 39236963.59 mJ
+  Energy per ms: 484.71 mW
+  Computational Load: 436,500 FLOPs
+  Performance: 5.39 FLOPs/ms
+
+Processing mode 4: 1812 records
+Mode 4: Layer 3 (추론)
+  Duration: 81746.00 ms
+  Power - Mean: 485.67 mW, Std: 3.39 mW
+  Power - Max: 508.33 mW, Min: 467.23 mW
+  Total Energy: 39701358.31 mJ
+  Energy per ms: 485.67 mW
+  Computational Load: 582,000 FLOPs
+  Performance: 7.12 FLOPs/ms
+
+Processing mode 5: 2263 records
+Mode 5: Layer 4 (추론)
+  Duration: 82532.00 ms
+  Power - Mean: 484.95 mW, Std: 2.80 mW
+  Power - Max: 505.20 mW, Min: 467.58 mW
+  Total Energy: 40023787.27 mJ
+  Energy per ms: 484.95 mW
+  Computational Load: 727,500 FLOPs
+  Performance: 8.81 FLOPs/ms
+
+Processing mode 6: 81 records
+Mode 6: Transmission (전송)
+  Duration: 89866.00 ms
+  Power - Mean: 969.83 mW, Std: 710.72 mW
+  Power - Max: 2210.77 mW, Min: 403.69 mW
+  Total Energy: 87154343.38 mJ
+  Energy per ms: 969.83 mW
+
+
+================================================================================
+Analyzing: eps32-c3-supermini_profiles_ultrasonic.csv
+================================================================================
+
+Columns found: ['Time(ms)', 'Voltage(V)', 'Current(mA)', 'Power(mW)', 'Mode']
+Total records: 6664
+Available modes: [np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5), np.int64(6), np.int64(7)]
+First few rows:
+   Time(ms)  Voltage(V)  Current(mA)  Power(mW)  Mode
+0      3458        5.06         97.3     492.34     7
+1      3470        5.08         86.5     439.07     7
+2      3483        5.08         87.1     442.12     7
+3      3495        5.07         86.1     436.70     7
+4      3507        5.07         86.3     437.71     7
+
+Processing mode 0: 82 records
+Mode 0: Idle (대기)
+  Duration: 30203.00 ms
+  Power - Mean: 443.09 mW, Std: 3.93 mW
+  Power - Max: 461.41 mW, Min: 438.06 mW
+  Total Energy: 13382687.79 mJ
+  Energy per ms: 443.09 mW
+
+Processing mode 1: 216 records
+Mode 1: Layer 0 (추론)
+  Duration: 31033.00 ms
+  Power - Mean: 504.39 mW, Std: 2.60 mW
+  Power - Max: 514.00 mW, Min: 496.27 mW
+  Total Energy: 15652591.20 mJ
+  Energy per ms: 504.39 mW
+  Computational Load: 232,800 FLOPs
+  Performance: 7.50 FLOPs/ms
+
+Processing mode 2: 405 records
+Mode 2: Layer 1 (추론)
+  Duration: 62700.00 ms
+  Power - Mean: 505.29 mW, Std: 3.28 mW
+  Power - Max: 527.16 mW, Min: 494.25 mW
+  Total Energy: 31681799.11 mJ
+  Energy per ms: 505.29 mW
+  Computational Load: 291,000 FLOPs
+  Performance: 4.64 FLOPs/ms
+
+Processing mode 3: 607 records
+Mode 3: Layer 2 (추론)
+  Duration: 62749.00 ms
+  Power - Mean: 504.67 mW, Std: 3.26 mW
+  Power - Max: 524.63 mW, Min: 487.66 mW
+  Total Energy: 31667701.16 mJ
+  Energy per ms: 504.67 mW
+  Computational Load: 436,500 FLOPs
+  Performance: 6.96 FLOPs/ms
+
+Processing mode 4: 811 records
+Mode 4: Layer 3 (추론)
+  Duration: 62826.00 ms
+  Power - Mean: 506.29 mW, Std: 3.16 mW
+  Power - Max: 525.64 mW, Min: 492.61 mW
+  Total Energy: 31808020.61 mJ
+  Energy per ms: 506.29 mW
+  Computational Load: 582,000 FLOPs
+  Performance: 9.26 FLOPs/ms
+
+Processing mode 5: 838 records
+Mode 5: Layer 4 (추론)
+  Duration: 61015.00 ms
+  Power - Mean: 505.11 mW, Std: 3.11 mW
+  Power - Max: 524.63 mW, Min: 487.93 mW
+  Total Energy: 30819548.04 mJ
+  Energy per ms: 505.11 mW
+  Computational Load: 727,500 FLOPs
+  Performance: 11.92 FLOPs/ms
+
+Processing mode 6: 30 records
+Mode 6: Transmission (전송)
+  Duration: 73189.00 ms
+  Power - Mean: 665.32 mW, Std: 240.65 mW
+  Power - Max: 1004.58 mW, Min: 439.50 mW
+  Total Energy: 48694178.67 mJ
+  Energy per ms: 665.32 mW
+
+Processing mode 7: 3675 records
+Mode 7: Sensing (ultrasonic)
+  Duration: 80322.00 ms
+  Power - Mean: 449.66 mW, Std: 18.95 mW
+  Power - Max: 522.32 mW, Min: 424.18 mW
+  Total Energy: 36117207.82 mJ
+  Energy per ms: 449.66 mW
+
+
+================================================================================
+Mode 6 (Transmission) Analysis: Energy per Byte
+================================================================================
+
+Sensor Type: accel+gyro+mag
+  Duration: 11791.00 ms
+  Total Energy: 7944510.50 mJ
+  Assumed Data Size: 256 bytes
+  Energy per Byte: 31033244.15 µJ/byte
+
+Sensor Type: accel+gyro
+  Duration: 21821.00 ms
+  Total Energy: 9615614.90 mJ
+  Assumed Data Size: 256 bytes
+  Energy per Byte: 37560995.72 µJ/byte
+
+Sensor Type: accel_only
+  Duration: 63626.00 ms
+  Total Energy: 40369984.39 mJ
+  Assumed Data Size: 256 bytes
+  Energy per Byte: 157695251.52 µJ/byte
+
+Sensor Type: gyro+mag
+  Duration: 84678.00 ms
+  Total Energy: 41933146.68 mJ
+  Assumed Data Size: 256 bytes
+  Energy per Byte: 163801354.23 µJ/byte
+
+Sensor Type: no-sensing
+  Duration: 89866.00 ms
+  Total Energy: 87154343.38 mJ
+  Assumed Data Size: 256 bytes
+  Energy per Byte: 340446653.81 µJ/byte
+
+Sensor Type: ultrasonic
+  Duration: 73189.00 ms
+  Total Energy: 48694178.67 mJ
+  Assumed Data Size: 256 bytes
+  Energy per Byte: 190211635.43 µJ/byte
+
+
+================================================================================
+Mode 7 (Sensing) Analysis: 3-second Operation
+================================================================================
+
+Sensor Energy Consumption (3-second measurement):
+
+Sensor: accel+gyro+mag
+  Measured Duration: 9320.00 ms
+  Average Power: 505.95 mW
+  Energy for 3 seconds: 1517851.69 mJ (1517.852 J)
+  Energy per second: 505950.56 mJ/s
+
+Sensor: accel+gyro
+  Measured Duration: 82221.00 ms
+  Average Power: 439.48 mW
+  Energy for 3 seconds: 1318439.20 mJ (1318.439 J)
+  Energy per second: 439479.73 mJ/s
+
+Sensor: accel_only
+  Measured Duration: 69113.00 ms
+  Average Power: 458.58 mW
+  Energy for 3 seconds: 1375740.91 mJ (1375.741 J)
+  Energy per second: 458580.30 mJ/s
+
+Sensor: gyro+mag
+  Measured Duration: 89684.00 ms
+  Average Power: 505.03 mW
+  Energy for 3 seconds: 1515086.68 mJ (1515.087 J)
+  Energy per second: 505028.89 mJ/s
+
+Sensor: ultrasonic
+  Measured Duration: 80322.00 ms
+  Average Power: 449.66 mW
+  Energy for 3 seconds: 1348965.71 mJ (1348.966 J)
+  Energy per second: 449655.24 mJ/s
+
+
+Results saved to: energy_analysis_summary.csv
+
+================================================================================
+SUMMARY TABLE
+================================================================================
+
+              Mode_Description  Duration_ms  ...  Total_Energy_mJ  Energy_per_ms_mW
+Mode                                         ...                                   
+0                    Idle (대기)     45887.75  ...      19776336.99            434.85
+1                 Layer 0 (추론)     38785.40  ...      15061694.07            459.96
+2                 Layer 1 (추론)     45235.67  ...      22441992.88            499.29
+3                 Layer 2 (추론)     45567.17  ...      22572818.20            498.79
+4                 Layer 3 (추론)     49053.60  ...      24483231.07            495.50
+5                 Layer 4 (추론)     49305.20  ...      24556295.91            494.75
+6            Transmission (전송)     57495.17  ...      39285296.42            646.55
+7     Sensing (accel+gyro+mag)     66132.00  ...      30790800.39            471.74
+
+[8 rows x 5 columns]
+
+
+Sensor-specific Summary (Mode 7):
+   Sensor_Type  Power_Mean_mW  Energy_3sec_mJ  Energy_3sec_J
+accel+gyro+mag         505.95      1517851.69        1517.85
+    accel+gyro         439.48      1318439.20        1318.44
+    accel_only         458.58      1375740.91        1375.74
+      gyro+mag         505.03      1515086.68        1515.09
+    ultrasonic         449.66      1348965.71        1348.97
+
+
+Layer-specific Summary (Mode 1-5):
+          Duration_ms  Power_Mean_mW  ...     FLOPs  Energy_per_MFLOP_mJ
+Layer_ID                              ...                               
+0.0          38785.40         459.96  ...  232800.0          64697998.58
+1.0          45235.67         499.29  ...  291000.0          77120250.43
+2.0          45567.17         498.79  ...  436500.0          51713214.66
+3.0          49053.60         495.50  ...  582000.0          42067407.34
+4.0          49305.20         494.75  ...  727500.0          33754358.64
+
+[5 rows x 5 columns]
+
+
+Analysis complete! Check 'energy_analysis_summary.csv' for detailed results.

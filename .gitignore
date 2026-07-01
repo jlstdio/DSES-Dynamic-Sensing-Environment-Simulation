@@ -726,3 +726,5 @@ FodyWeavers.xsd
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]serSettings/
+
+./Python_Simulation/exports/*

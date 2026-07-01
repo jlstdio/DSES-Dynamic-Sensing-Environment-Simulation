@@ -1,0 +1,5 @@
+Sensor_Type,Duration_ms,Power_Mean_mW,Power_Std_mW,Power_Max_mW,Power_Min_mW,Total_Energy_mJ,Energy_per_ms_mW
+accel_only,29497,414.96,2.09,420.89,410.51,12240121.88,414.96
+gyro+mag,31607,458.75,10.97,474.38,438.36,14499594.19,458.75
+no-sensing,92244,422.61,48.64,1212.62,166.66,38982944.09,422.61
+ultrasonic,30203,443.09,3.93,461.41,438.06,13382687.79,443.09

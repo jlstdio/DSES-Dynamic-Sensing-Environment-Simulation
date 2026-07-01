@@ -1,0 +1,2 @@
+battery_option_mah,max_battery_joules,mean_final_battery_pct,min_final_battery_pct,max_final_battery_pct,mean_avg_charging_mw,mean_avg_consumption_mw,mean_avg_net_power_mw,nodes_with_deep_sleep,revived_nodes,total_revivals,median_first_death_day,earliest_first_death_day,latest_first_death_day,median_first_revival_day,nodes_below_10pct_end,nodes_below_1pct_end
+100,1188.0,19.82515098482424,19.824272345368907,19.82537064468807,786.1532030537312,283.7136939800477,502.4395091207154,5,0,0,0.5198097222222222,0.5183210648148148,0.5198097222222222,,0,0

@@ -1,0 +1,17 @@
+Mode,Description,Key_Metric,Value
+Mode 0 (Idle),대기 상태,1ms당 에너지,434.85 mW
+Mode 1,Layer 0,연산량/시간/에너지,"232,800 FLOPs / 1305 ms / 577.77 J"
+Mode 2,Layer 1,연산량/시간/에너지,"291,000 FLOPs / 1603 ms / 800.62 J"
+Mode 3,Layer 2,연산량/시간/에너지,"436,500 FLOPs / 2400 ms / 1197.63 J"
+Mode 4,Layer 3,연산량/시간/에너지,"582,000 FLOPs / 3207 ms / 1589.97 J"
+Mode 5,Layer 4,연산량/시간/에너지,"727,500 FLOPs / 3845 ms / 1901.28 J"
+Mode 6 (Transmission),Layer 0 전송,전송 (byte당),400 bytes → 166581 µJ/byte
+Mode 6 (Transmission),Layer 1 전송,전송 (byte당),320 bytes → 208226 µJ/byte
+Mode 6 (Transmission),Layer 2 전송,전송 (byte당),240 bytes → 277634 µJ/byte
+Mode 6 (Transmission),Layer 3 전송,전송 (byte당),160 bytes → 416452 µJ/byte
+Mode 6 (Transmission),Layer 4 전송,전송 (byte당),80 bytes → 832903 µJ/byte
+Mode 7 (Sensing),data/accel+gyro,센서 (1ms당),439.48 mW
+Mode 7 (Sensing),data/ultrasonic,센서 (1ms당),449.66 mW
+Mode 7 (Sensing),data/accel_only,센서 (1ms당),458.58 mW
+Mode 7 (Sensing),data/gyro+mag,센서 (1ms당),505.03 mW
+Mode 7 (Sensing),data/accel+gyro+mag,센서 (1ms당),505.95 mW
