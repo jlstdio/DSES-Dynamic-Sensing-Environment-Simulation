@@ -1,0 +1,37 @@
+{
+  "profile_name": "esp32_c3_mini",
+  "description": "ESP32-C3 Mini MCU compute/energy profile for simulation runtime.",
+  "cpu": {
+    "architecture": "riscv32-single-core",
+    "freq_options_mhz": [80, 160],
+    "default_freq_mhz": 160,
+    "coremark_total": 483.27,
+    "coremark_per_mhz": 3.02
+  },
+  "instruction_cycles": {
+    "integer_arithmetic": 1,
+    "unconditional_branch": 2,
+    "conditional_branch_not_taken": 1,
+    "conditional_branch_taken": 3
+  },
+  "power": {
+    "voltage_v": 3.3,
+    "active_current_ma_80mhz": 20.0,
+    "active_current_ma_160mhz": 25.0,
+    "light_sleep_current_ua": 130.0,
+    "deep_sleep_current_ua": 5.0,
+    "joules_per_cycle_160mhz": 5.15e-10,
+    "joules_per_cycle_80mhz": 8.25e-10
+  },
+  "compute_model": {
+    "cycles_per_byte_preprocess": 50,
+    "cycles_per_byte_inference": 200,
+    "cycles_per_byte_tx_prep": 10,
+    "cycles_per_byte_rx_parse": 8,
+    "mfcc_frame_ms": 40,
+    "mfcc_cycles_per_frame_min": 100000,
+    "mfcc_cycles_per_frame_max": 150000,
+    "default_audio_sample_rate_hz": 16000,
+    "notes": "Use byte-count driven cost estimation inside node_runtime. Energy = cycles * joules_per_cycle."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "dataset": {
+    "root": "event_dataset",
+    "name": "ASC24"
+  },
+  "acoustic": {
+    "source_audio_db": 50.0,
+    "simulation_source_db": 75.0,
+    "min_reachable_db": 40.0,
+    "reference_distance_m": 1.0,
+    "distance_doubling_loss_db": 6.0,
+    "speed_of_sound_mps": 343.0,
+    "space_width_m": 1000.0,
+    "space_height_m": 1000.0,
+    "node_grid_max_columns": 10,
+    "capture_sample_rate_hz": 16000,
+    "fallback_frequency_hz": 440.0
+  }
+}

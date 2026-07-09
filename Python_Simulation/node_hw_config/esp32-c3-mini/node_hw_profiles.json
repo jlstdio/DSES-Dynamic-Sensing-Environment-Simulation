@@ -1,0 +1,70 @@
+{
+  "profile_family": "esp32_c3_mini_nodes",
+  "default_profile": "normal_100mah_panel1x",
+  "shared_defaults": {
+    "battery_voltage_v": 3.3,
+    "initial_battery_ratio": 0.5,
+    "wake_threshold_ratio": 0.25,
+    "sleep_threshold_ratio": 0.2,
+    "sensor_power_mw": 505.95,
+    "base_inference_power_mw": 490.0,
+    "base_communication_power_mw": 800.0,
+    "deep_sleep_power_mw": 0.05,
+    "mic_sample_rate_hz": 16000,
+    "mic_frame_ms": 40,
+    "panel_harvest_scale": 1.0,
+    "notes": "sensor_power_mw reuses existing profiling values from battery_option_scenarios.py and node_profiling_spec.md"
+  },
+  "profiles": {
+    "normal_10mah_panel1x": {
+      "battery_capacity_mah": 10,
+      "panel_harvest_scale": 1.0,
+      "panel_label": "baseline"
+    },
+    "normal_50mah_panel1x": {
+      "battery_capacity_mah": 50,
+      "panel_harvest_scale": 1.0,
+      "panel_label": "baseline"
+    },
+    "normal_100mah_panel1x": {
+      "battery_capacity_mah": 100,
+      "panel_harvest_scale": 1.0,
+      "panel_label": "baseline"
+    },
+    "normal_150mah_panel1x": {
+      "battery_capacity_mah": 150,
+      "panel_harvest_scale": 1.0,
+      "panel_label": "baseline"
+    },
+    "normal_200mah_panel1x": {
+      "battery_capacity_mah": 200,
+      "panel_harvest_scale": 1.0,
+      "panel_label": "baseline"
+    },
+    "normal_250mah_panel1x": {
+      "battery_capacity_mah": 250,
+      "panel_harvest_scale": 1.0,
+      "panel_label": "baseline"
+    },
+    "normal_500mah_panel1x": {
+      "battery_capacity_mah": 500,
+      "panel_harvest_scale": 1.0,
+      "panel_label": "baseline"
+    },
+    "normal_1000mah_panel1x": {
+      "battery_capacity_mah": 1000,
+      "panel_harvest_scale": 1.0,
+      "panel_label": "baseline"
+    },
+    "normal_100mah_panel075x": {
+      "battery_capacity_mah": 100,
+      "panel_harvest_scale": 0.75,
+      "panel_label": "small"
+    },
+    "normal_100mah_panel125x": {
+      "battery_capacity_mah": 100,
+      "panel_harvest_scale": 1.25,
+      "panel_label": "large"
+    }
+  }
+}

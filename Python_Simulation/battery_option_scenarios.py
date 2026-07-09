@@ -1,9 +1,14 @@
 from pathlib import Path
 import argparse
 from dataclasses import dataclass
+import json
 
 import numpy as np
 import pandas as pd
+
+from communication_service import CommunicationService
+from sim_comm import SimRadio
+from node_runtime import NodeRuntime
 
 
 NOMINAL_BATTERY_VOLTAGE = 3.3
@@ -290,6 +295,7 @@ def build_capacity_summary_and_optional_timeseries(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--legacy-vectorized", action="store_true", help="Use previous vectorized simulator path.")
     parser.add_argument("--summary-only", action="store_true", help="Write only summary CSVs and the comparison CSV")
     parser.add_argument("--emit-timeseries", action="store_true", help="Write per-step timeseries CSV")
     parser.add_argument("--days", type=int, default=DEFAULT_SIMULATION_DAYS, help="Number of simulation days")
@@ -297,11 +303,222 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--capacities", nargs="*", type=int, default=BATTERY_OPTIONS_MAH, help="Battery capacities in mAh")
     parser.add_argument("--chunk-steps", type=int, default=2000, help="Timeseries write chunk size in steps")
     parser.add_argument("--max-nodes", type=int, default=None, help="Optional limit for number of nodes")
+    parser.add_argument("--hw-config", type=Path, default=Path("node_hw_config/esp32-c3-mini/node_hw_profiles.json"), help="Node HW profiles JSON path")
+    parser.add_argument("--mcu-profile", type=Path, default=Path("node_hw_config/esp32-c3-mini/mcu_profile.json"), help="MCU profile JSON path")
+    parser.add_argument("--comm-config", type=Path, default=Path("node_hw_config/esp32-c3-mini/comm_config.json"), help="Communication config JSON path")
+    parser.add_argument("--hw-profiles", nargs="*", default=None, help="Specific HW profiles to run (default: all)")
+    parser.add_argument("--comm-mode", type=str, default=None, help="Communication mode key (default from comm_config)")
+    parser.add_argument("--coding", type=str, default=None, help="Coding scheme key within the comm mode (default: mode's coding.active)")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for communication stochasticity")
     return parser.parse_args()
 
 
-def main() -> None:
-    args = parse_args()
+def _load_json(path: Path) -> dict:
+    if not path.exists():
+        raise FileNotFoundError(f"Config file not found: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _build_arrival_start_index(arrivals_df: pd.DataFrame) -> dict[int, dict[int, list[dict]]]:
+    start_index: dict[int, dict[int, list[dict]]] = {}
+    if arrivals_df.empty:
+        return start_index
+    for row in arrivals_df.itertuples(index=False):
+        node_id = int(row.node_id)
+        start_ms = int(row.arrival_start_ms)
+        start_index.setdefault(node_id, {}).setdefault(start_ms, []).append(
+            {
+                "event_id": int(row.event_id),
+                "label_name": str(row.label_name),
+                "received_db": float(row.received_db),
+                "arrival_end_ms": int(row.arrival_end_ms),
+            }
+        )
+    return start_index
+
+
+def _run_runtime_profile(
+    profile_name: str,
+    hw_profile: dict,
+    shared_defaults: dict,
+    mcu_profile: dict,
+    comm_mode_name: str,
+    comm_mode_cfg: dict,
+    export_dir: Path,
+    output_dir: Path,
+    args: argparse.Namespace,
+) -> tuple[pd.DataFrame, dict]:
+    time_values, node_ids, charging_cycle, irradiance_cycle = load_base_cycle(
+        export_dir / "node_simulation_log.csv", max_nodes=args.max_nodes
+    )
+    n_nodes = len(node_ids)
+
+    nodes_df = pd.read_csv(export_dir / "nodes.csv")
+    nodes_df = nodes_df[nodes_df["node_id"].isin(node_ids)].copy()
+    nodes_df = nodes_df.set_index("node_id").loc[node_ids].reset_index()
+    positions = nodes_df[["x", "z"]].to_numpy(dtype=float)
+
+    arrivals_cols = ["event_id", "node_id", "arrival_start_ms", "arrival_end_ms", "label_name", "received_db"]
+    arrivals_df = pd.read_csv(export_dir / "node_acoustic_arrivals.csv", usecols=arrivals_cols)
+    arrivals_df = arrivals_df[arrivals_df["node_id"].isin(node_ids)]
+    arrivals_index = _build_arrival_start_index(arrivals_df)
+
+    merged_hw = dict(shared_defaults)
+    merged_hw.update(hw_profile)
+
+    battery_capacity_mah = float(merged_hw["battery_capacity_mah"])
+    battery_voltage_v = float(merged_hw["battery_voltage_v"])
+    max_battery_j = mah_to_joules(battery_capacity_mah, voltage_v=battery_voltage_v)
+    panel_harvest_scale = float(merged_hw.get("panel_harvest_scale", 1.0))
+
+    broker = CommunicationService(
+        positions_xz=positions,
+        mode_name=comm_mode_name,
+        mode_cfg=comm_mode_cfg,
+        seed=args.seed,
+        coding_scheme=getattr(args, "coding", None),
+    )
+
+    runtimes: list[NodeRuntime] = []
+    for idx, node_id in enumerate(node_ids):
+        radio = SimRadio(node_id=idx, broker=broker)
+        hw_cfg = dict(merged_hw)
+        runtime = NodeRuntime(node_id=int(node_id), hw_cfg=hw_cfg, mcu_cfg=mcu_profile, radio=radio)
+        runtimes.append(runtime)
+
+    writer = None
+    if args.emit_timeseries:
+        ts_path = output_dir / f"node_runtime_timeseries_{profile_name}.csv"
+        if ts_path.exists():
+            ts_path.unlink()
+        writer = TimeSeriesWriter(ts_path, node_ids=node_ids, chunk_steps=args.chunk_steps)
+
+    sec_count = len(time_values) - 1
+    day_span_ms = int(time_values[-1])
+    steps_per_second = 1000 // args.dt_ms
+
+    sample_count = np.zeros(n_nodes, dtype=np.int64)
+    charging_sum_mw = np.zeros(n_nodes, dtype=float)
+    consumption_sum_mw = np.zeros(n_nodes, dtype=float)
+    min_battery_pct = np.full(n_nodes, 100.0, dtype=float)
+    max_battery_pct = np.zeros(n_nodes, dtype=float)
+    deep_sleep_steps = np.zeros(n_nodes, dtype=np.int64)
+    dead_steps = np.zeros(n_nodes, dtype=np.int64)
+    tx_packets = np.zeros(n_nodes, dtype=np.int64)
+    rx_packets = np.zeros(n_nodes, dtype=np.int64)
+    collab_events = np.zeros(n_nodes, dtype=np.int64)
+
+    total_delivery = 0
+    success_delivery = 0
+
+    for day_idx in range(args.days):
+        day_offset_ms = day_idx * day_span_ms
+        for sec_idx in range(sec_count):
+            base_charging_mw = charging_cycle[sec_idx] * panel_harvest_scale
+            irradiance = irradiance_cycle[sec_idx]
+            sec_start_ms = int(time_values[sec_idx])
+
+            for sub_idx in range(steps_per_second):
+                t_in_day_ms = sec_start_ms + sub_idx * args.dt_ms
+                t_abs_ms = day_offset_ms + t_in_day_ms
+
+                consumption_row = np.zeros(n_nodes, dtype=float)
+                battery_row_j = np.zeros(n_nodes, dtype=float)
+                battery_row_pct = np.zeros(n_nodes, dtype=float)
+                state_row = np.empty(n_nodes, dtype=object)
+
+                for i, node_id in enumerate(node_ids):
+                    events_now = arrivals_index.get(int(node_id), {}).get(t_in_day_ms, [])
+                    m = runtimes[i].tick(
+                        current_time_ms=t_abs_ms,
+                        dt_ms=args.dt_ms,
+                        charging_mw=float(base_charging_mw[i]),
+                        sound_events=events_now,
+                        sub_step=sub_idx,
+                        steps_per_second=steps_per_second,
+                    )
+                    consumption_row[i] = m.consumption_mw
+                    battery_row_j[i] = runtimes[i].battery_j
+                    battery_row_pct[i] = (runtimes[i].battery_j / max_battery_j * 100.0) if max_battery_j > 0 else 0.0
+                    state_row[i] = m.state
+
+                can_receive = np.array([not r.in_deep_sleep and not r.dead for r in runtimes], dtype=bool)
+                inbox_idx, rx_energy_idx, delivery_log = broker.flush(can_receive)
+                total_delivery += len(delivery_log)
+                success_delivery += int(sum(1 for d in delivery_log if d["delivered"]))
+
+                for i in range(n_nodes):
+                    runtimes[i].enqueue_received(inbox_idx.get(i, []), float(rx_energy_idx.get(i, 0.0)))
+
+                sample_count += 1
+                charging_sum_mw += base_charging_mw
+                consumption_sum_mw += consumption_row
+                min_battery_pct = np.minimum(min_battery_pct, battery_row_pct)
+                max_battery_pct = np.maximum(max_battery_pct, battery_row_pct)
+                deep_sleep_steps += np.array([1 if r.in_deep_sleep else 0 for r in runtimes], dtype=np.int64)
+                dead_steps += np.array([1 if r.dead else 0 for r in runtimes], dtype=np.int64)
+                tx_packets = np.array([r.sent_packets for r in runtimes], dtype=np.int64)
+                rx_packets = np.array([r.received_packets for r in runtimes], dtype=np.int64)
+                collab_events = np.array([r.collab_events for r in runtimes], dtype=np.int64)
+
+                if writer is not None:
+                    writer.add_step(
+                        time_ms=t_abs_ms,
+                        day_index=day_idx + 1,
+                        charging_mw=base_charging_mw,
+                        irradiance_multiplier=irradiance,
+                        consumption_mw=consumption_row,
+                        battery_joules=battery_row_j,
+                        battery_pct=battery_row_pct,
+                        node_state=state_row,
+                    )
+
+    if writer is not None:
+        writer.flush()
+
+    final_battery_j = np.array([r.battery_j for r in runtimes], dtype=float)
+    final_battery_pct = (final_battery_j / max_battery_j * 100.0) if max_battery_j > 0 else np.zeros(n_nodes, dtype=float)
+
+    summary_df = pd.DataFrame(
+        {
+            "profile_name": profile_name,
+            "comm_mode": comm_mode_name,
+            "node_id": node_ids,
+            "battery_capacity_mah": battery_capacity_mah,
+            "panel_harvest_scale": panel_harvest_scale,
+            "avg_charging_mw": charging_sum_mw / sample_count,
+            "avg_consumption_mw": consumption_sum_mw / sample_count,
+            "min_battery_pct": min_battery_pct,
+            "max_battery_pct": max_battery_pct,
+            "final_battery_pct": final_battery_pct,
+            "final_battery_joules": final_battery_j,
+            "deep_sleep_pct": (deep_sleep_steps / sample_count) * 100.0,
+            "dead_pct": (dead_steps / sample_count) * 100.0,
+            "tx_packets": tx_packets,
+            "rx_packets": rx_packets,
+            "collab_events": collab_events,
+        }
+    )
+
+    meta = {
+        "profile_name": profile_name,
+        "comm_mode": comm_mode_name,
+        "coding_scheme": broker.coding_name,
+        "coding_gain_db": broker.coding_gain_db,
+        "byte_overhead": broker.byte_overhead,
+        "redundancy_factor": broker.redundancy_factor,
+        "delivery_total": total_delivery,
+        "delivery_success": success_delivery,
+        "delivery_pdr": (float(success_delivery) / float(total_delivery)) if total_delivery > 0 else 0.0,
+        "mean_final_battery_pct": float(summary_df["final_battery_pct"].mean()),
+        "min_final_battery_pct": float(summary_df["final_battery_pct"].min()),
+        "mean_tx_packets": float(summary_df["tx_packets"].mean()),
+        "mean_rx_packets": float(summary_df["rx_packets"].mean()),
+    }
+    return summary_df, meta
+
+
+def _legacy_vectorized_main(args: argparse.Namespace) -> None:
 
     if args.dt_ms <= 0:
         raise ValueError("--dt-ms must be > 0")
@@ -378,6 +595,79 @@ def main() -> None:
     print("Battery option scenarios written to:")
     print(output_dir)
     print(comparison_df.to_string(index=False))
+
+
+def _runtime_main(args: argparse.Namespace) -> None:
+    if args.dt_ms <= 0:
+        raise ValueError("--dt-ms must be > 0")
+    if 1000 % args.dt_ms != 0:
+        raise ValueError("--dt-ms must divide 1000 (e.g., 1000, 100, 50, 20, 10)")
+    if args.days <= 0:
+        raise ValueError("--days must be > 0")
+
+    project_root = Path(__file__).resolve().parent
+    export_dir = project_root / "exports" / "latest"
+
+    hw_cfg_path = (project_root / args.hw_config).resolve() if not args.hw_config.is_absolute() else args.hw_config
+    mcu_cfg_path = (project_root / args.mcu_profile).resolve() if not args.mcu_profile.is_absolute() else args.mcu_profile
+    comm_cfg_path = (project_root / args.comm_config).resolve() if not args.comm_config.is_absolute() else args.comm_config
+
+    hw_db = _load_json(hw_cfg_path)
+    mcu_profile = _load_json(mcu_cfg_path)
+    comm_db = _load_json(comm_cfg_path)
+
+    shared_defaults = hw_db.get("shared_defaults", {})
+    all_profiles = hw_db.get("profiles", {})
+    if not all_profiles:
+        raise ValueError("No HW profiles defined in node_hw_profiles.json")
+
+    selected = args.hw_profiles if args.hw_profiles else sorted(all_profiles.keys())
+    for name in selected:
+        if name not in all_profiles:
+            raise KeyError(f"HW profile not found: {name}")
+
+    comm_modes = comm_db.get("modes", {})
+    if not comm_modes:
+        raise ValueError("No communication modes found in comm_config.json")
+    comm_mode_name = args.comm_mode or str(comm_db.get("default_mode") or sorted(comm_modes.keys())[0])
+    if comm_mode_name not in comm_modes:
+        raise KeyError(f"Communication mode not found: {comm_mode_name}")
+    comm_mode_cfg = comm_modes[comm_mode_name]
+
+    output_dir = export_dir / f"battery_runtime_{args.days}d_{args.dt_ms}ms"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    comparison_rows = []
+    for profile_name in selected:
+        summary_df, meta = _run_runtime_profile(
+            profile_name=profile_name,
+            hw_profile=all_profiles[profile_name],
+            shared_defaults=shared_defaults,
+            mcu_profile=mcu_profile,
+            comm_mode_name=comm_mode_name,
+            comm_mode_cfg=comm_mode_cfg,
+            export_dir=export_dir,
+            output_dir=output_dir,
+            args=args,
+        )
+        summary_path = output_dir / f"node_summary_{profile_name}.csv"
+        summary_df.to_csv(summary_path, index=False)
+        comparison_rows.append(meta)
+
+    comparison_df = pd.DataFrame(comparison_rows)
+    comparison_df.to_csv(output_dir / "runtime_profile_comparison.csv", index=False)
+
+    print("Node runtime scenarios written to:")
+    print(output_dir)
+    print(comparison_df.to_string(index=False))
+
+
+def main() -> None:
+    args = parse_args()
+    if args.legacy_vectorized:
+        _legacy_vectorized_main(args)
+    else:
+        _runtime_main(args)
 
 
 if __name__ == "__main__":

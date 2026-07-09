@@ -729,3 +729,4 @@ FodyWeavers.xsd
 
 Python_Simulation/exportsPython_Simulation/exports/
 Python_Simulation/exports/latest/*
+Python_Simulation/event_dataset/*

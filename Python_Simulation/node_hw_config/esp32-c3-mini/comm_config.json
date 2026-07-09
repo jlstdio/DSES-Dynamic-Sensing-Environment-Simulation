@@ -1,0 +1,149 @@
+{
+  "default_mode": "wifi5",
+  "_comment": "RF + coding profiles for ESP32-C3-class nodes. Node firmware only calls radio.broadcast(); all FEC/repeat/redundancy and the resulting energy overhead are applied inside communication_service.py (the broker). Each mode carries a 'coding' block whose 'active' scheme is used unless overridden by --coding.",
+  "modes": {
+    "wifi5": {
+      "protocol": "wifi",
+      "standard": "802.11ac (Wi-Fi 5, 5GHz VHT)",
+      "max_range_m": 40.0,
+      "_range_note": "max_range_m is derived from the RF link budget (not a hard cap). With tx=18 dBm, sensitivity=-97 dBm, 5 GHz FSPL@1m=46.4 dB and forest path-loss exponent gamma=4.3, the uncoded 50%-PDR range = 1 * 10^((18-(-97)-46.4)/(10*4.3)) ~= 40 m. FEC coding gain extends this per spec inside communication_service.py.",
+      "radio_tx_peak_ma": 335.0,
+      "radio_rx_peak_ma": 90.0,
+      "radio_idle_ma": 18.0,
+      "tx_joules_per_byte": 1.5e-5,
+      "rx_joules_per_byte": 1.0e-5,
+      "base_overhead_joules": 0.005,
+      "path_loss_exponent": 4.3,
+      "reference_distance_m": 1.0,
+      "path_loss_db_at_1m": 46.4,
+      "shadow_sigma_db": 2.0,
+      "snr_slope_db": 2.5,
+      "receiver_sensitivity_dbm": -97.0,
+      "noise_floor_dbm": -100.0,
+      "tx_power_dbm": 18.0,
+      "supports_broadcast": true,
+      "supports_unicast": true,
+      "max_payload_bytes": 1500,
+      "bitrate_bps": 6500000,
+      "pdr_model": "log_distance",
+      "coding": {
+        "active": "ldpc_r12",
+        "_comment": "802.11ac VHT FEC: mandatory BCC (convolutional) and optional LDPC, code rates 1/2..5/6. LDPC gives ~2 dB extra coding gain over BCC. Broadcast frames are unacknowledged, so robustness comes from a lower code rate + optional repeat, not from Block-ACK ARQ.",
+        "schemes": {
+          "uncoded": {
+            "type": "none",
+            "label": "No FEC (CRC-32 detect only)",
+            "code_rate": 1.0,
+            "byte_overhead": 1.0,
+            "coding_gain_db": 0.0,
+            "redundancy_factor": 1
+          },
+          "bcc_r34": {
+            "type": "fec",
+            "label": "BCC convolutional, rate 3/4",
+            "code_rate": 0.75,
+            "byte_overhead": 1.3333,
+            "coding_gain_db": 3.0,
+            "redundancy_factor": 1
+          },
+          "bcc_r12": {
+            "type": "fec",
+            "label": "BCC convolutional, rate 1/2",
+            "code_rate": 0.5,
+            "byte_overhead": 2.0,
+            "coding_gain_db": 5.5,
+            "redundancy_factor": 1
+          },
+          "ldpc_r12": {
+            "type": "fec",
+            "label": "LDPC, rate 1/2 (~2 dB better than BCC)",
+            "code_rate": 0.5,
+            "byte_overhead": 2.0,
+            "coding_gain_db": 7.5,
+            "redundancy_factor": 1
+          },
+          "ldpc_r12_x2": {
+            "type": "fec_repeat",
+            "label": "LDPC r1/2 + 2x robust-broadcast repeat",
+            "code_rate": 0.5,
+            "byte_overhead": 2.0,
+            "coding_gain_db": 7.5,
+            "redundancy_factor": 2
+          }
+        }
+      }
+    },
+    "ble5": {
+      "protocol": "ble",
+      "standard": "Bluetooth 5.0 LE",
+      "max_range_m": 21.0,
+      "_range_note": "Derived from link budget: tx=0 dBm, sensitivity=-97 dBm, 2.4 GHz FSPL@1m=40 dB, same forest gamma=4.3 -> uncoded 50%-PDR range = 10^((0-(-97)-40)/(10*4.3)) ~= 21 m. LE Coded PHY S=2/S=8 coding gain extends range in-service.",
+      "radio_tx_peak_ma": 130.0,
+      "radio_rx_peak_ma": 130.0,
+      "radio_idle_ma": 1.0,
+      "tx_joules_per_byte": 3.4e-6,
+      "rx_joules_per_byte": 3.4e-6,
+      "base_overhead_joules": 0.0012,
+      "path_loss_exponent": 4.3,
+      "reference_distance_m": 1.0,
+      "path_loss_db_at_1m": 40.0,
+      "shadow_sigma_db": 2.0,
+      "snr_slope_db": 2.5,
+      "receiver_sensitivity_dbm": -97.0,
+      "noise_floor_dbm": -100.0,
+      "tx_power_dbm": 0.0,
+      "supports_broadcast": true,
+      "supports_unicast": true,
+      "max_payload_bytes": 255,
+      "bitrate_bps": 1000000,
+      "advertising_channels": 3,
+      "pdr_model": "log_distance",
+      "coding": {
+        "active": "le_coded_s2",
+        "_comment": "Bluetooth 5 PHYs. LE 1M/2M = uncoded (24-bit CRC detect only). LE Coded PHY adds FEC: S=2 (rate-1/2, ~2x range, +~5 dB) and S=8 (rate-1/2 conv + P=4 pattern map, ~4x range, +~12 dB, 1/8 throughput). Broadcast/advertising repeats on 3 channels (redundancy_factor 3).",
+        "schemes": {
+          "le_1m_uncoded": {
+            "type": "none",
+            "label": "LE 1M uncoded, single channel",
+            "code_rate": 1.0,
+            "byte_overhead": 1.0,
+            "coding_gain_db": 0.0,
+            "redundancy_factor": 1
+          },
+          "le_1m_adv3": {
+            "type": "repeat",
+            "label": "LE 1M uncoded, 3 advertising channels",
+            "code_rate": 1.0,
+            "byte_overhead": 1.0,
+            "coding_gain_db": 0.0,
+            "redundancy_factor": 3
+          },
+          "le_coded_s2": {
+            "type": "fec",
+            "label": "LE Coded PHY S=2 (~2x range, +5 dB)",
+            "code_rate": 0.5,
+            "byte_overhead": 2.0,
+            "coding_gain_db": 5.0,
+            "redundancy_factor": 1
+          },
+          "le_coded_s8": {
+            "type": "fec",
+            "label": "LE Coded PHY S=8 (~4x range, +12 dB)",
+            "code_rate": 0.125,
+            "byte_overhead": 8.0,
+            "coding_gain_db": 12.0,
+            "redundancy_factor": 1
+          },
+          "le_coded_s8_adv3": {
+            "type": "fec_repeat",
+            "label": "LE Coded S=8 + 3 advertising channels",
+            "code_rate": 0.125,
+            "byte_overhead": 8.0,
+            "coding_gain_db": 12.0,
+            "redundancy_factor": 3
+          }
+        }
+      }
+    }
+  }
+}
