@@ -1,5 +1,7 @@
 # DSES Dynamic Sensing Environment Simulation
 
+<img width="1356" height="1045" alt="sim_img" src="https://github.com/user-attachments/assets/62a37162-be1f-42f1-a0a4-564e64747e9e" />
+
 This project has the following goal:
 
 "WSN simulation with a focus on modeling natural environmental dynamics, including weather, solar radiation, and time-varying conditions"
