@@ -113,6 +113,7 @@ flowchart LR
 Using terrain/sun data exported from Unity and MCU/sensor profiling data, this module runs N-hour simulations for shading, charging, and consumption, then stores, logs, and visualizes results.
 
 - 폴더: [Python_Simulation](Python_Simulation)
+- Default acoustic dataset source: [Sounds of Animals (Kaggle)](https://www.kaggle.com/datasets/haithammoh/sounds-of-animals)
 
 Main scripts:
 

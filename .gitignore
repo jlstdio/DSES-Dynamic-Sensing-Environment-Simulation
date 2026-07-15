@@ -258,6 +258,10 @@ ExportedObj/
 *.csproj
 *.unityproj
 *.sln
+
+# Python_Simulation local datasets
+Python_Simulation/dataset/
+Python_Simulation/event_dataset/
 *.suo
 *.tmp
 *.user
